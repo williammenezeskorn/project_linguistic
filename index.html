@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Dados Multilíngues</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a single-page tool with a clear, task-oriented workflow. It features a side-by-side input section for 'Source' and 'Target' texts, allowing for easy pasting and comparison. A prominent 'Analisar Textos' button triggers the core logic. Below the inputs, a dedicated results area appears dynamically. This area is split into two clear sections: a main comparison report presented in a table for detailed analysis, and a list of new data found only in the target text. This structure was chosen to directly mirror the user's mental model: provide data, get a comparison, and then see what's new. It's efficient, eliminates scrolling between different pages, and presents the complex analysis in a digestible, structured format. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Names, Orgs, Numbers, Dates from source/target texts.
+        - Goal: Compare entities, identify discrepancies, and find new data.
+        - Viz/Presentation Method: Textareas for input, an HTML table for the main report, and an unordered list for added data.
+        - Interaction: User pastes text and clicks a button. The report is generated dynamically in the DOM. Statuses in the table are color-coded for quick visual feedback.
+        - Justification: For this text-heavy, data-driven task, a tabular format is superior to graphical charts. It allows for precise display of text, status, and details, which is the core requirement. The simple button-click interaction makes the tool immediately usable without a learning curve.
+        - Library/Method: Vanilla JavaScript for all logic, Tailwind CSS for styling.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .status-ok { color: #16a34a; font-weight: 600; }
+        .status-variacao { color: #d97706; font-weight: 600; }
+        .status-ausente { color: #dc2626; font-weight: 600; }
+    </style>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">Ferramenta de Verificação de Dados</h1>
+            <p class="mt-2 text-lg text-stone-600">Compare entidades entre textos de origem e destino para garantir a qualidade da tradução.</p>
+        </header>
+
+        <main>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="sourceText" class="block text-lg font-semibold mb-2 text-stone-700">Texto de Origem (Source)</label>
+                        <textarea id="sourceText" rows="10" class="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200" placeholder="Cole aqui o texto original..."></textarea>
+                    </div>
+                    <div>
+                        <label for="targetText" class="block text-lg font-semibold mb-2 text-stone-700">Texto de Destino (Target)</label>
+                        <textarea id="targetText" rows="10" class="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200" placeholder="Cole aqui o texto traduzido..."></textarea>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-600 transition-transform transform hover:scale-105 shadow-md">
+                        Analisar Textos
+                    </button>
+                </div>
+            </div>
+
+            <div id="results" class="mt-10 hidden">
+                <div id="loader" class="text-center hidden">
+                    <p class="text-lg text-stone-600">Analisando...</p>
+                </div>
+                
+                <div id="reportContent">
+                    <h2 class="text-2xl font-bold text-center mb-6 text-stone-800">Relatório de Verificação de Dados</h2>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-stone-200">
+                            <thead class="bg-stone-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Entidade Original</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Tipo</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="bg-white divide-y divide-stone-200">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="addedDataSection" class="mt-8">
+                        <h3 class="text-xl font-bold mb-4 text-stone-800">Dados Adicionados no Destino</h3>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                            <ul id="addedDataList" class="list-disc list-inside space-y-2 text-stone-700">
+                                <li id="noAddedData" class="hidden">Nenhum dado novo encontrado.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const sourceTextArea = document.getElementById('sourceText');
+        const targetTextArea = document.getElementById('targetText');
+        const resultsDiv = document.getElementById('results');
+        const loader = document.getElementById('loader');
+        const reportContent = document.getElementById('reportContent');
+        const reportTableBody = document.getElementById('reportTableBody');
+        const addedDataList = document.getElementById('addedDataList');
+        const addedDataSection = document.getElementById('addedDataSection');
+        const noAddedData = document.getElementById('noAddedData');
+
+        sourceTextArea.value = "O contrato com John Smith, CEO da Acme Corp., foi assinado em 20 de maio de 2024. A empresa transferiu um pagamento de US$ 10.000,00 para a conta de número 987654321.";
+        targetTextArea.value = "O contrato com João Smith, diretor da empresa Acme, foi assinado em 20/05/2024. A companhia fez um pagamento de R$ 50.000 para a conta de número 987654321.";
+
+        const ENTITY_DEFINITIONS = [
+            { type: 'Nome de Pessoa', regex: /(?:[A-Z][a-zà-ú]+-?)+ (?:[A-Z][a-zà-ú]+\s?)+/g },
+            { type: 'Organização', regex: /[A-Z][A-Za-z0-9\s]+(?:Corp\.|Inc\.|Ltda\.)/g },
+            { type: 'Número (Valor)', regex: /(?:R\$|US\$)\s?[\d.,]+/g },
+            { type: 'Data', regex: /\d{1,2} de [a-zA-Zç]+ de \d{4}|\d{1,2}\/\d{1,2}\/\d{4}/g },
+            { type: 'Número (Conta)', regex: /\b\d{9,}\b/g },
+        ];
+        
+        const normalizeText = (text) => {
+            if (!text) return '';
+            return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        };
+
+        const normalizeNumber = (text) => {
+            if (!text) return '';
+            return text.replace(/[R\$US\$\s.,]/g, '');
+        };
+        
+        const normalizeDate = (text) => {
+            if (!text) return '';
+            const months = {
+                'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04', 'maio': '05', 'junho': '06',
+                'julho': '07', 'agosto': '08', 'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+            };
+            const normalized = text.toLowerCase();
+            if (normalized.includes('de')) {
+                const parts = normalized.split(' de ');
+                const day = parts[0].padStart(2, '0');
+                const month = months[parts[1]];
+                const year = parts[2];
+                return `${day}/${month}/${year}`;
+            }
+            return text;
+        };
+
+        const getNormalizedValue = (entity, type) => {
+            switch(type) {
+                case 'Número (Valor)':
+                case 'Número (Conta)':
+                    return normalizeNumber(entity);
+                case 'Data':
+                    return normalizeDate(entity);
+                default:
+                    return normalizeText(entity);
+            }
+        };
+
+        const extractEntities = (text) => {
+            const entities = [];
+            ENTITY_DEFINITIONS.forEach(({ type, regex }) => {
+                const matches = text.match(regex);
+                if (matches) {
+                    matches.forEach(match => {
+                        entities.push({ original: match, type: type, normalized: getNormalizedValue(match, type) });
+                    });
+                }
+            });
+            return entities;
+        };
+
+        const findVariation = (entity, normalizedTargetText) => {
+            if (entity.type === 'Organização') {
+                const mainName = entity.original.split(' ')[0];
+                const normalizedMainName = normalizeText(mainName);
+                 if (normalizedTargetText.includes(normalizedMainName)) {
+                     const regex = new RegExp(`\\b${normalizedMainName}\\b`, 'i');
+                     const match = normalizedTargetText.match(regex);
+                     if(match) return { found: true, detail: `Encontrado como "${mainName}".`};
+                 }
+            }
+            return { found: false, detail: 'Não encontrado no texto de destino.' };
+        };
+
+        analyzeBtn.addEventListener('click', () => {
+            const sourceText = sourceTextArea.value;
+            const targetText = targetTextArea.value;
+
+            if (!sourceText || !targetText) {
+                alert('Por favor, preencha ambos os campos de texto.');
+                return;
+            }
+
+            resultsDiv.classList.remove('hidden');
+            reportContent.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            setTimeout(() => {
+                reportTableBody.innerHTML = '';
+                addedDataList.innerHTML = '';
+
+                const sourceEntities = extractEntities(sourceText);
+                const targetEntities = extractEntities(targetText);
+                const normalizedTargetText = normalizeText(targetText);
+                const normalizedSourceEntities = sourceEntities.map(e => e.normalized);
+
+                sourceEntities.forEach(entity => {
+                    let status = 'Ausente';
+                    let details = 'Não encontrado no texto de destino.';
+                    let statusClass = 'status-ausente';
+                    
+                    const normalizedTargetEntities = targetEntities.map(e => e.normalized);
+
+                    if (normalizedTargetEntities.includes(entity.normalized)) {
+                        status = 'OK';
+                        details = 'Encontrado.';
+                        statusClass = 'status-ok';
+                    } else {
+                        const variation = findVariation(entity, normalizedTargetText);
+                        if (variation.found) {
+                            status = 'Variação Encontrada';
+                            details = variation.detail;
+                            statusClass = 'status-variacao';
+                        }
+                    }
+
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-800">${entity.original}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${entity.type}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${status}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${details}</td>
+                        </tr>
+                    `;
+                    reportTableBody.innerHTML += row;
+                });
+                
+                let addedDataCount = 0;
+                targetEntities.forEach(entity => {
+                    if (!normalizedSourceEntities.includes(entity.normalized)) {
+                        const li = document.createElement('li');
+                        li.textContent = `${entity.original} (${entity.type})`;
+                        addedDataList.appendChild(li);
+                        addedDataCount++;
+                    }
+                });
+                
+                if (addedDataCount > 0) {
+                    noAddedData.classList.add('hidden');
+                    addedDataSection.classList.remove('hidden');
+                } else {
+                    addedDataSection.classList.add('hidden');
+                }
+                
+                loader.classList.add('hidden');
+                reportContent.classList.remove('hidden');
+            }, 500);
+        });
+    });
+    </script>
+</body>
+</html>

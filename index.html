@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificador de Dados Multilíngues - Korn Traduções</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
-        // Configuração do Worker do PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         .status-ok { color: #16a34a; font-weight: 600; }
         .status-variacao { color: #d97706; font-weight: 600; }
         .status-ausente { color: #dc2626; font-weight: 600; }
-        .file-input-wrapper input[type=file] { display: none; }
+        textarea { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -25,75 +26,79 @@
     <div class="container mx-auto p-4 sm:p-6 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">QA Linguístico e Validação de Dados</h1>
-            <p class="mt-2 text-lg text-stone-600">Compare entidades (Nomes, Datas, Valores) entre os textos Source e Target para garantir a conformidade da tradução.</p>
+            <p class="mt-2 text-lg text-stone-600">Verificação automática de integridade para a equipe de operações.</p>
         </header>
 
         <main>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <div class="flex flex-col h-full">
+                    <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label for="sourceText" class="text-lg font-semibold text-stone-700">Texto Original (Source)</label>
-                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium py-1 px-3 rounded border border-stone-300 transition-colors">
-                                <span>📁 Subir PDF/DOCX</span>
+                            <label class="text-lg font-semibold text-stone-700">Texto Original (Source)</label>
+                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
+                                📁 SUBIR ARQUIVO
                                 <input type="file" id="sourceFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="sourceText" class="w-full flex-grow p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200" style="min-height: 250px;" placeholder="Cole aqui ou suba o arquivo original do cliente..."></textarea>
+                        <textarea id="sourceText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Cole o texto ou suba o arquivo original..."></textarea>
                     </div>
 
-                    <div class="flex flex-col h-full">
+                    <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label for="targetText" class="text-lg font-semibold text-stone-700">Texto Traduzido (Target)</label>
-                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium py-1 px-3 rounded border border-stone-300 transition-colors">
-                                <span>📁 Subir PDF/DOCX</span>
+                            <label class="text-lg font-semibold text-stone-700">Texto Traduzido (Target)</label>
+                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
+                                📁 SUBIR ARQUIVO
                                 <input type="file" id="targetFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="targetText" class="w-full flex-grow p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200" style="min-height: 250px;" placeholder="Cole aqui ou suba o arquivo traduzido para auditoria..."></textarea>
+                        <textarea id="targetText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Cole o texto ou suba a tradução..."></textarea>
                     </div>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-                    <button id="loadMockBtn" class="bg-stone-200 text-stone-700 font-bold py-3 px-6 rounded-lg hover:bg-stone-300 transition-colors border border-stone-300 shadow-sm flex items-center">
-                        Carregar Cenário de Teste
+                    <button id="loadMockBtn" class="text-stone-600 font-semibold py-2 px-4 hover:text-stone-900 transition-colors text-sm">
+                        [ Carregar Cenário de Teste ]
                     </button>
                     
-                    <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-600 transition-transform transform hover:scale-105 shadow-md flex items-center">
-                        Analisar Textos
+                    <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-amber-600 transition-all shadow-md">
+                        Analisar Dados
                     </button>
                 </div>
             </div>
 
             <div id="results" class="mt-10 hidden">
-                <div id="loader" class="text-center hidden">
-                    <p class="text-lg text-stone-600 font-semibold animate-pulse">Auditando entidades linguísticas...</p>
-                </div>
-                
                 <div id="reportContent">
-                    <h2 class="text-2xl font-bold text-center mb-6 text-stone-800">Relatório de Verificação de Dados</h2>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 overflow-x-auto">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-stone-800">Relatório de Verificação</h2>
+                        <button id="exportCsvBtn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Exportar CSV
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
                         <table class="min-w-full divide-y divide-stone-200">
-                            <thead class="bg-stone-100">
+                            <thead class="bg-stone-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Entidade Original (Source)</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Tipo</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-stone-600 uppercase tracking-wider">Detalhes / Ação</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Entidade Original</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Detalhes</th>
                                 </tr>
                             </thead>
-                            <tbody id="reportTableBody" class="bg-white divide-y divide-stone-200">
-                            </tbody>
+                            <tbody id="reportTableBody" class="divide-y divide-stone-200 bg-white">
+                                </tbody>
                         </table>
                     </div>
 
-                    <div id="addedDataSection" class="mt-8">
-                        <h3 class="text-xl font-bold mb-4 text-stone-800">Alerta: Dados Adicionados no Destino</h3>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-200 bg-red-50">
-                            <ul id="addedDataList" class="list-disc list-inside space-y-2 text-red-700 font-medium">
-                                <li id="noAddedData" class="hidden text-stone-700 font-normal">Nenhum dado novo ou não mapeado encontrado.</li>
-                            </ul>
+                    <div id="addedDataSection" class="mt-8 hidden">
+                        <h3 class="text-lg font-bold mb-3 text-red-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+                            Dados Detectados apenas no Destino (Possível Inserção Indevida)
+                        </h3>
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                            <ul id="addedDataList" class="list-disc list-inside text-red-700 text-sm font-medium space-y-1"></ul>
                         </div>
                     </div>
                 </div>
@@ -103,230 +108,124 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const loadMockBtn = document.getElementById('loadMockBtn');
-        const sourceTextArea = document.getElementById('sourceText');
-        const targetTextArea = document.getElementById('targetText');
-        const sourceFileInput = document.getElementById('sourceFileInput');
-        const targetFileInput = document.getElementById('targetFileInput');
-        
-        const resultsDiv = document.getElementById('results');
-        const loader = document.getElementById('loader');
-        const reportContent = document.getElementById('reportContent');
-        const reportTableBody = document.getElementById('reportTableBody');
-        const addedDataList = document.getElementById('addedDataList');
-        const addedDataSection = document.getElementById('addedDataSection');
-        const noAddedData = document.getElementById('noAddedData');
+        // Elementos
+        const els = {
+            source: document.getElementById('sourceText'),
+            target: document.getElementById('targetText'),
+            sFile: document.getElementById('sourceFileInput'),
+            tFile: document.getElementById('targetFileInput'),
+            analyze: document.getElementById('analyzeBtn'),
+            mock: document.getElementById('loadMockBtn'),
+            results: document.getElementById('results'),
+            table: document.getElementById('reportTableBody'),
+            addedSection: document.getElementById('addedDataSection'),
+            addedList: document.getElementById('addedDataList'),
+            export: document.getElementById('exportCsvBtn')
+        };
 
-        // FUNÇÃO: Extrair texto de PDF
-        async function extractTextFromPDF(arrayBuffer) {
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let fullText = '';
+        // Funções de Extração de Arquivos
+        async function readDocx(buffer) { return (await mammoth.extractRawText({ arrayBuffer: buffer })).value; }
+        async function readPdf(buffer) {
+            const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+            let text = "";
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(' ');
-                fullText += pageText + '\n';
-            }
-            return fullText;
-        }
-
-        // FUNÇÃO: Extrair texto de DOCX
-        async function extractTextFromDOCX(arrayBuffer) {
-            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-            return result.value;
-        }
-
-        // FUNÇÃO: Processar o Upload do Arquivo
-        async function handleFileUpload(event, targetTextArea) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            // Feedback visual na tela
-            targetTextArea.value = "Lendo arquivo, aguarde...";
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const arrayBuffer = e.target.result;
-                let text = '';
-                try {
-                    if (file.name.toLowerCase().endsWith('.pdf')) {
-                        text = await extractTextFromPDF(arrayBuffer);
-                    } else if (file.name.toLowerCase().endsWith('.docx')) {
-                        text = await extractTextFromDOCX(arrayBuffer);
-                    } else {
-                        targetTextArea.value = "";
-                        alert('Atenção: Por favor, selecione apenas arquivos .pdf ou .docx');
-                        return;
-                    }
-                    targetTextArea.value = text;
-                } catch (error) {
-                    targetTextArea.value = "";
-                    alert('Erro ao processar o arquivo: O documento pode estar protegido ou corrompido.');
-                    console.error(error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Listeners para os inputs de arquivo
-        sourceFileInput.addEventListener('change', (e) => handleFileUpload(e, sourceTextArea));
-        targetFileInput.addEventListener('change', (e) => handleFileUpload(e, targetTextArea));
-
-        // FUNÇÃO: Carregar Dados de Teste (Mock Data)
-        loadMockBtn.addEventListener('click', () => {
-            sourceTextArea.value = "The service contract for John Doe, CEO of Acme Corp., is valued at US$ 45,000.00 and starts on 10/12/2026. Please remit payment to account number 998877665.";
-            targetTextArea.value = "O contrato de prestação de serviços para Jon Doe, diretor da Acme, tem o valor de R$ 45.000,00 e começa em 12/10/2026. Por favor, efetue o pagamento para a conta de número 998877664.";
-        });
-
-        // DEFINIÇÕES DE ENTIDADES (RegEx)
-        const ENTITY_DEFINITIONS = [
-            { type: 'Nome de Pessoa', regex: /(?:[A-Z][a-zà-ú]+-?)+ (?:[A-Z][a-zà-ú]+\s?)+/g },
-            { type: 'Organização', regex: /[A-Z][A-Za-z0-9\s]+(?:Corp\.|Inc\.|Ltda\.)/g },
-            { type: 'Número (Valor)', regex: /(?:R\$|US\$)\s?[\d.,]+/g },
-            { type: 'Data', regex: /\d{1,2} de [a-zA-Zç]+ de \d{4}|\d{1,2}\/\d{1,2}\/\d{4}/g },
-            { type: 'Número (Conta)', regex: /\b\d{9,}\b/g },
-        ];
-        
-        const normalizeText = (text) => {
-            if (!text) return '';
-            return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        };
-
-        const normalizeNumber = (text) => {
-            if (!text) return '';
-            return text.replace(/[R\$US\$\s.,]/g, '');
-        };
-        
-        const normalizeDate = (text) => {
-            if (!text) return '';
-            const months = {
-                'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04', 'maio': '05', 'junho': '06',
-                'julho': '07', 'agosto': '08', 'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
-            };
-            const normalized = text.toLowerCase();
-            if (normalized.includes('de')) {
-                const parts = normalized.split(' de ');
-                const day = parts[0].padStart(2, '0');
-                const month = months[parts[1]];
-                const year = parts[2];
-                return `${day}/${month}/${year}`;
+                const content = await page.getTextContent();
+                text += content.items.map(s => s.str).join(' ') + "\n";
             }
             return text;
-        };
+        }
 
-        const getNormalizedValue = (entity, type) => {
-            switch(type) {
-                case 'Número (Valor)':
-                case 'Número (Conta)':
-                    return normalizeNumber(entity);
-                case 'Data':
-                    return normalizeDate(entity);
-                default:
-                    return normalizeText(entity);
+        const handleFile = async (e, area) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            area.value = "Processando arquivo localmente...";
+            const buffer = await file.arrayBuffer();
+            try {
+                area.value = file.name.endsWith('.pdf') ? await readPdf(buffer) : await readDocx(buffer);
+            } catch (err) {
+                area.value = ""; alert("Erro ao ler arquivo. Verifique se não está protegido.");
             }
         };
 
-        const extractEntities = (text) => {
-            const entities = [];
-            ENTITY_DEFINITIONS.forEach(({ type, regex }) => {
-                const matches = text.match(regex);
-                if (matches) {
-                    matches.forEach(match => {
-                        entities.push({ original: match, type: type, normalized: getNormalizedValue(match, type) });
-                    });
+        els.sFile.addEventListener('change', (e) => handleFile(e, els.source));
+        els.tFile.addEventListener('change', (e) => handleFile(e, els.target));
+
+        // Mock Data
+        els.mock.addEventListener('click', () => {
+            els.source.value = "Contrato Global Inc. assinado em 20/03/2026. Valor: R$ 12.500,00. Conta: 123456789.";
+            els.target.value = "Contrato Global assinado em 20/03/2026. Valor: R$ 12.550,00. Conta: 123456780. Adendo: Maria Silva.";
+        });
+
+        // Lógica de Auditoria (RegEx)
+        const RULES = [
+            { type: 'Valor', regex: /(?:R\$|US\$)\s?[\d.,]+/g },
+            { type: 'Data', regex: /\d{2}\/\d{2}\/\d{4}/g },
+            { type: 'Conta', regex: /\b\d{8,}\b/g },
+            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltda\.|S\/A)/g }
+        ];
+
+        const normalize = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[R\$US\$\s.,]/g, '');
+
+        els.analyze.addEventListener('click', () => {
+            if (!els.source.value || !els.target.value) return alert("Preencha os dois campos.");
+            
+            els.results.classList.remove('hidden');
+            els.table.innerHTML = "";
+            els.addedList.innerHTML = "";
+            els.addedSection.classList.add('hidden');
+
+            const getEntities = (txt) => {
+                let res = [];
+                RULES.forEach(r => {
+                    const matches = txt.match(r.regex);
+                    if (matches) matches.forEach(m => res.push({ val: m, type: r.type, norm: normalize(m) }));
+                });
+                return res;
+            };
+
+            const sEnt = getEntities(els.source.value);
+            const tEnt = getEntities(els.target.value);
+            const tNorms = tEnt.map(e => e.norm);
+
+            sEnt.forEach(e => {
+                const found = tNorms.includes(e.norm);
+                const status = found ? 'OK' : 'FALHA';
+                const sClass = found ? 'status-ok' : 'status-ausente';
+                els.table.innerHTML += `<tr>
+                    <td class="px-6 py-4 text-sm font-medium">${e.val}</td>
+                    <td class="px-6 py-4 text-sm text-stone-500">${e.type}</td>
+                    <td class="px-6 py-4 text-sm ${sClass}">${status}</td>
+                    <td class="px-6 py-4 text-sm text-stone-400">${found ? 'Correspondente' : 'Divergente ou Ausente'}</td>
+                </tr>`;
+            });
+
+            tEnt.forEach(e => {
+                if (!sEnt.map(se => se.norm).includes(e.norm)) {
+                    els.addedSection.classList.remove('hidden');
+                    const li = document.createElement('li');
+                    li.textContent = `${e.val} (${e.type})`;
+                    els.addedList.appendChild(li);
                 }
             });
-            return entities;
-        };
+            els.results.scrollIntoView({ behavior: 'smooth' });
+        });
 
-        const findVariation = (entity, normalizedTargetText) => {
-            if (entity.type === 'Organização') {
-                const mainName = entity.original.split(' ')[0];
-                const normalizedMainName = normalizeText(mainName);
-                 if (normalizedTargetText.includes(normalizedMainName)) {
-                     const regex = new RegExp(`\\b${normalizedMainName}\\b`, 'i');
-                     const match = normalizedTargetText.match(regex);
-                     if(match) return { found: true, detail: `Aviso: Encontrado parcialmente como "${mainName}".`};
-                 }
-            }
-            return { found: false, detail: 'Erro Crítico: Não encontrado no texto de destino.' };
-        };
-
-        analyzeBtn.addEventListener('click', () => {
-            const sourceText = sourceTextArea.value;
-            const targetText = targetTextArea.value;
-
-            if (!sourceText || !targetText) {
-                alert('Atenção: Por favor, preencha ambos os campos (ou suba os arquivos) antes de analisar.');
-                return;
-            }
-
-            resultsDiv.classList.remove('hidden');
-            reportContent.classList.add('hidden');
-            loader.classList.remove('hidden');
+        // EXPORTAR CSV (Excel Friendly)
+        els.export.addEventListener('click', () => {
+            let csv = "\uFEFF"; // BOM para acentos no Excel
+            csv += "Entidade Original,Tipo,Status,Detalhes\n";
             
-            setTimeout(() => {
-                reportTableBody.innerHTML = '';
-                addedDataList.innerHTML = '';
+            document.querySelectorAll('#reportTableBody tr').forEach(tr => {
+                const data = Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.trim()}"`);
+                csv += data.join(",") + "\n";
+            });
 
-                const sourceEntities = extractEntities(sourceText);
-                const targetEntities = extractEntities(targetText);
-                const normalizedTargetText = normalizeText(targetText);
-                const normalizedSourceEntities = sourceEntities.map(e => e.normalized);
-
-                sourceEntities.forEach(entity => {
-                    let status = 'FALHA DE TRADUÇÃO';
-                    let details = 'Não encontrado no texto de destino.';
-                    let statusClass = 'status-ausente';
-                    
-                    const normalizedTargetEntities = targetEntities.map(e => e.normalized);
-
-                    if (normalizedTargetEntities.includes(entity.normalized)) {
-                        status = 'OK';
-                        details = 'Correspondência Exata.';
-                        statusClass = 'status-ok';
-                    } else {
-                        const variation = findVariation(entity, normalizedTargetText);
-                        if (variation.found) {
-                            status = 'ATENÇÃO (Variação)';
-                            details = variation.detail;
-                            statusClass = 'status-variacao';
-                        }
-                    }
-
-                    const row = `
-                        <tr class="hover:bg-stone-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-900">${entity.original}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${entity.type}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${status}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">${details}</td>
-                        </tr>
-                    `;
-                    reportTableBody.innerHTML += row;
-                });
-                
-                let addedDataCount = 0;
-                targetEntities.forEach(entity => {
-                    if (!normalizedSourceEntities.includes(entity.normalized)) {
-                        const li = document.createElement('li');
-                        li.textContent = `${entity.original} (${entity.type})`;
-                        addedDataList.appendChild(li);
-                        addedDataCount++;
-                    }
-                });
-                
-                if (addedDataCount > 0) {
-                    noAddedData.classList.add('hidden');
-                    addedDataSection.classList.remove('hidden');
-                } else {
-                    addedDataSection.classList.add('hidden');
-                }
-                
-                loader.classList.add('hidden');
-                reportContent.classList.remove('hidden');
-                reportContent.scrollIntoView({ behavior: 'smooth' });
-            }, 600); 
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `QA_Korn_Auditoria_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`;
+            link.click();
         });
     });
     </script>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificador de Dados Multilíngues - Korn Traduções</title>
+    <title>Multilingual Data Validator - Korn Translations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
@@ -15,18 +15,23 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .status-ok { color: #16a34a; font-weight: 600; }
-        .status-variacao { color: #d97706; font-weight: 600; }
-        .status-ausente { color: #dc2626; font-weight: 600; }
+        .status-warning { color: #d97706; font-weight: 600; }
+        .status-fail { color: #dc2626; font-weight: 600; }
         textarea { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-stone-50 text-stone-800">
+<body class="bg-stone-50 text-stone-800 flex flex-col min-h-screen">
 
-    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 flex-grow">
+        <div class="mb-6 bg-blue-50 border border-blue-100 p-3 rounded-xl flex items-center justify-center text-blue-700 text-sm font-medium">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            🔒 Zero Trust Processing: Files are processed 100% locally in your browser and are never sent to any server.
+        </div>
+
         <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">QA Linguístico e Validação de Dados</h1>
-            <p class="mt-2 text-lg text-stone-600">Verificação automática de integridade para a equipe de operações.</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">Multilingual Data Validator</h1>
+            <p class="mt-2 text-lg text-stone-600">Automated integrity check for operations and quality assurance teams.</p>
         </header>
 
         <main>
@@ -35,34 +40,34 @@
                     
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-lg font-semibold text-stone-700">Texto Original (Source)</label>
+                            <label class="text-lg font-semibold text-stone-700">Original Text (Source)</label>
                             <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
-                                📁 SUBIR ARQUIVO
+                                📁 UPLOAD FILE
                                 <input type="file" id="sourceFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="sourceText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Cole o texto ou suba o arquivo original..."></textarea>
+                        <textarea id="sourceText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Paste text or upload source file..."></textarea>
                     </div>
 
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-lg font-semibold text-stone-700">Texto Traduzido (Target)</label>
+                            <label class="text-lg font-semibold text-stone-700">Translated Text (Target)</label>
                             <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
-                                📁 SUBIR ARQUIVO
+                                📁 UPLOAD FILE
                                 <input type="file" id="targetFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="targetText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Cole o texto ou suba a tradução..."></textarea>
+                        <textarea id="targetText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Paste text or upload translation..."></textarea>
                     </div>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-                    <button id="loadMockBtn" class="text-stone-600 font-semibold py-2 px-4 hover:text-stone-900 transition-colors text-sm">
-                        [ Carregar Cenário de Teste ]
+                    <button id="loadMockBtn" class="text-stone-500 font-semibold py-2 px-4 hover:text-stone-900 transition-colors text-sm">
+                        [ Load Test Scenario ]
                     </button>
                     
                     <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-amber-600 transition-all shadow-md">
-                        Analisar Dados
+                        Analyze Data
                     </button>
                 </div>
             </div>
@@ -70,10 +75,10 @@
             <div id="results" class="mt-10 hidden">
                 <div id="reportContent">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-stone-800">Relatório de Verificação</h2>
-                        <button id="exportCsvBtn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center">
+                        <h2 class="text-2xl font-bold text-stone-800">Verification Report</h2>
+                        <button id="exportCsvBtn" class="mt-4 sm:mt-0 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Exportar CSV
+                            Export CSV
                         </button>
                     </div>
 
@@ -81,10 +86,10 @@
                         <table class="min-w-full divide-y divide-stone-200">
                             <thead class="bg-stone-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Entidade Original</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Source Entity</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Type</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Detalhes</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Details</th>
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody" class="divide-y divide-stone-200 bg-white">
@@ -95,7 +100,7 @@
                     <div id="addedDataSection" class="mt-8 hidden">
                         <h3 class="text-lg font-bold mb-3 text-red-800 flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
-                            Dados Detectados apenas no Destino (Possível Inserção Indevida)
+                            Data detected only in Target (Possible incorrect insertion)
                         </h3>
                         <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                             <ul id="addedDataList" class="list-disc list-inside text-red-700 text-sm font-medium space-y-1"></ul>
@@ -106,9 +111,12 @@
         </main>
     </div>
 
+    <footer class="w-full text-center py-6 mt-12 border-t border-stone-100 bg-white">
+        <p class="text-xs text-stone-400 font-medium">powered by Indlewild Burg. Company</p>
+    </footer>
+
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Elementos
         const els = {
             source: document.getElementById('sourceText'),
             target: document.getElementById('targetText'),
@@ -123,7 +131,7 @@
             export: document.getElementById('exportCsvBtn')
         };
 
-        // Funções de Extração de Arquivos
+        // File Readers
         async function readDocx(buffer) { return (await mammoth.extractRawText({ arrayBuffer: buffer })).value; }
         async function readPdf(buffer) {
             const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -139,12 +147,12 @@
         const handleFile = async (e, area) => {
             const file = e.target.files[0];
             if (!file) return;
-            area.value = "Processando arquivo localmente...";
+            area.value = "Reading file locally...";
             const buffer = await file.arrayBuffer();
             try {
                 area.value = file.name.endsWith('.pdf') ? await readPdf(buffer) : await readDocx(buffer);
             } catch (err) {
-                area.value = ""; alert("Erro ao ler arquivo. Verifique se não está protegido.");
+                area.value = ""; alert("Error reading file. Check if it is protected.");
             }
         };
 
@@ -153,22 +161,21 @@
 
         // Mock Data
         els.mock.addEventListener('click', () => {
-            els.source.value = "Contrato Global Inc. assinado em 20/03/2026. Valor: R$ 12.500,00. Conta: 123456789.";
-            els.target.value = "Contrato Global assinado em 20/03/2026. Valor: R$ 12.550,00. Conta: 123456780. Adendo: Maria Silva.";
+            els.source.value = "Agreement for Global Inc. signed on 10/25/2026. Total: $ 15,000.00. IBAN: US9912345678.";
+            els.target.value = "Agreement for Global signed on 10/25/2026. Total: $ 15,050.00. IBAN: US9912345679. Note: John Smith.";
         });
 
-        // Lógica de Auditoria (RegEx)
         const RULES = [
-            { type: 'Valor', regex: /(?:R\$|US\$)\s?[\d.,]+/g },
-            { type: 'Data', regex: /\d{2}\/\d{2}\/\d{4}/g },
-            { type: 'Conta', regex: /\b\d{8,}\b/g },
-            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltda\.|S\/A)/g }
+            { type: 'Currency', regex: /(?:\$|£|€|R\$|US\$)\s?[\d.,]+/g },
+            { type: 'Date', regex: /\d{2}\/\d{2}\/\d{4}/g },
+            { type: 'ID/Account', regex: /\b[A-Z0-9]{8,}\b/g },
+            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltd\.|LLC)/g }
         ];
 
-        const normalize = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[R\$US\$\s.,]/g, '');
+        const normalize = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\$£€R\s.,]/g, '');
 
         els.analyze.addEventListener('click', () => {
-            if (!els.source.value || !els.target.value) return alert("Preencha os dois campos.");
+            if (!els.source.value || !els.target.value) return alert("Please fill both fields.");
             
             els.results.classList.remove('hidden');
             els.table.innerHTML = "";
@@ -190,13 +197,13 @@
 
             sEnt.forEach(e => {
                 const found = tNorms.includes(e.norm);
-                const status = found ? 'OK' : 'FALHA';
-                const sClass = found ? 'status-ok' : 'status-ausente';
+                const status = found ? 'MATCH' : 'MISMATCH';
+                const sClass = found ? 'status-ok' : 'status-fail';
                 els.table.innerHTML += `<tr>
                     <td class="px-6 py-4 text-sm font-medium">${e.val}</td>
                     <td class="px-6 py-4 text-sm text-stone-500">${e.type}</td>
                     <td class="px-6 py-4 text-sm ${sClass}">${status}</td>
-                    <td class="px-6 py-4 text-sm text-stone-400">${found ? 'Correspondente' : 'Divergente ou Ausente'}</td>
+                    <td class="px-6 py-4 text-sm text-stone-400">${found ? 'Consistent' : 'Missing or altered'}</td>
                 </tr>`;
             });
 
@@ -211,10 +218,10 @@
             els.results.scrollIntoView({ behavior: 'smooth' });
         });
 
-        // EXPORTAR CSV (Excel Friendly)
+        // CSV EXPORT (Excel Friendly)
         els.export.addEventListener('click', () => {
-            let csv = "\uFEFF"; // BOM para acentos no Excel
-            csv += "Entidade Original,Tipo,Status,Detalhes\n";
+            let csv = "\uFEFF"; // UTF-8 BOM
+            csv += "Source Entity,Type,Status,Details\n";
             
             document.querySelectorAll('#reportTableBody tr').forEach(tr => {
                 const data = Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.trim()}"`);
@@ -224,7 +231,7 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `QA_Korn_Auditoria_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`;
+            link.download = `QA_Verification_Report_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
         });
     });

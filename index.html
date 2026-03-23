@@ -159,20 +159,35 @@
         els.sFile.addEventListener('change', (e) => handleFile(e, els.source));
         els.tFile.addEventListener('change', (e) => handleFile(e, els.target));
 
-        // Mock Data
+        // Mock Data Atualizado para a Demonstração
         els.mock.addEventListener('click', () => {
-            els.source.value = "Agreement for Global Inc. signed on 10/25/2026. Total: $ 15,000.00. IBAN: US9912345678.";
-            els.target.value = "Agreement for Global signed on 10/25/2026. Total: $ 15,050.00. IBAN: US9912345679. Note: John Smith.";
+            els.source.value = "On March 15, 2026, the company TechCorp Ltd., registered under CNPJ 12.345.678/0001-90, agreed to transfer the total amount of USD 1,500,000.50 to the supplier. The transaction must be completed by April 10, 2026. Invoice #98765-A was issued accordingly.";
+            els.target.value = "Em 15 de maio de 2026, a empresa TechCorp Ltd., registrada sob o CNPJ 12.345.687/0001-90, concordou em transferir o valor total de USD 1.500.000,05 para o fornecedor. A transação deve ser concluída até 10 de abril de 2026. A fatura nº 98756-A foi emitida de acordo.";
         });
 
+        // Regras de Extração (Regex) Melhoradas
         const RULES = [
-            { type: 'Currency', regex: /(?:\$|£|€|R\$|US\$)\s?[\d.,]+/g },
-            { type: 'Date', regex: /\d{2}\/\d{2}\/\d{4}/g },
-            { type: 'ID/Account', regex: /\b[A-Z0-9]{8,}\b/g },
-            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltd\.|LLC)/g }
+            // 1. Moedas: Agora lida com USD, EUR, BRL e casas decimais/milhares complexas
+            { type: 'Currency', regex: /(?:USD|EUR|BRL|GBP|\$|£|€|R\$|US\$)\s?[\d.,]+/gi },
+            
+            // 2. Datas: Pega datas por extenso em inglês e português, além de formato numérico
+            { type: 'Date', regex: /\b(?:\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2},\s\d{4}|\d{1,2}\sde\s[a-z]+\sde\s\d{4})\b/gi },
+            
+            // 3. Documentos: Padrões exatos de CNPJ e CPF (com ou sem pontuação)
+            { type: 'ID/Document', regex: /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g },
+            
+            // 4. Códigos/Faturas: Pega letras, números e traços (ex: #98765-A)
+            { type: 'Code/Invoice', regex: /#?[A-Z0-9]+-[A-Z0-9]+/gi },
+            
+            // 5. Organizações: Adicionado LTDA e S.A.
+            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltd\.|LLC|S\.A\.|LTDA|S\/A)/g }
         ];
 
-        const normalize = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\$£€R\s.,]/g, '');
+        // Melhoria no Normalize: Remove espaços e pontuações para comparar apenas as letras/números crus,
+        // garantindo que "1,500.00" e "1.500,00" sejam comparados de forma justa, alertando a diferença real.
+        const normalize = (t) => t.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+            .replace(/[^a-z0-9]/gi, '');
 
         els.analyze.addEventListener('click', () => {
             if (!els.source.value || !els.target.value) return alert("Please fill both fields.");

@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multilingual Data Validator - Korn Translations</title>
+    <title>Multilingual Data Validator v2.0 - Korn Translations</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
-
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .status-ok { color: #16a34a; font-weight: 600; }
-        .status-warning { color: #d97706; font-weight: 600; }
-        .status-fail { color: #dc2626; font-weight: 600; }
-        textarea { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
+        .status-ok { color: #16a34a; font-weight: 600; background-color: #f0fdf4; }
+        .status-fail { color: #dc2626; font-weight: 600; background-color: #fef2f2; }
+        textarea { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; resize: none; }
+        .sync-scroll-container { display: flex; gap: 1rem; height: 400px; }
+        .sync-scroll-box { flex: 1; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; background: white; white-space: pre-wrap; font-size: 0.875rem; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -26,86 +25,83 @@
     <div class="container mx-auto p-4 sm:p-6 md:p-8 flex-grow">
         <div class="mb-6 bg-blue-50 border border-blue-100 p-3 rounded-xl flex items-center justify-center text-blue-700 text-sm font-medium">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            🔒 Zero Trust Processing: Files are processed 100% locally in your browser and are never sent to any server.
+            🔒 Zero Trust Processing: Files are processed locally in your browser.
         </div>
 
         <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">Multilingual Data Validator</h1>
-            <p class="mt-2 text-lg text-stone-600">Automated integrity check for operations and quality assurance teams.</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">Multilingual Data Validator <span class="text-amber-600 text-xl">v2.0</span></h1>
+            <p class="mt-2 text-lg text-stone-600">Advanced QA check for numbers, dates, and currencies across languages.</p>
         </header>
 
         <main>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-lg font-semibold text-stone-700">Original Text (Source)</label>
-                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
-                                📁 UPLOAD FILE
+                            <label class="text-sm font-bold text-stone-700 uppercase">Original Text (Source)</label>
+                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300">
+                                📁 UPLOAD
                                 <input type="file" id="sourceFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="sourceText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Paste text or upload source file..."></textarea>
+                        <textarea id="sourceText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500" placeholder="Paste source text..."></textarea>
                     </div>
 
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-lg font-semibold text-stone-700">Translated Text (Target)</label>
-                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300 transition-colors">
-                                📁 UPLOAD FILE
+                            <label class="text-sm font-bold text-stone-700 uppercase">Translated Text (Target)</label>
+                            <label class="cursor-pointer bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold py-1 px-3 rounded border border-stone-300">
+                                📁 UPLOAD
                                 <input type="file" id="targetFileInput" accept=".pdf,.docx" class="hidden">
                             </label>
                         </div>
-                        <textarea id="targetText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 transition duration-200" placeholder="Paste text or upload translation..."></textarea>
+                        <textarea id="targetText" class="w-full h-64 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500" placeholder="Paste translated text..."></textarea>
                     </div>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-                    <button id="loadMockBtn" class="text-stone-500 font-semibold py-2 px-4 hover:text-stone-900 transition-colors text-sm">
-                        [ Load Test Scenario ]
+                    <button id="loadMockBtn" class="text-stone-500 font-semibold py-2 px-4 hover:text-stone-900 text-sm">
+                        [ Load Scenario with Date/Currency Variations ]
                     </button>
-                    
-                    <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-amber-600 transition-all shadow-md">
-                        Analyze Data
+                    <button id="analyzeBtn" class="bg-amber-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-amber-600 shadow-md">
+                        Run Validation
                     </button>
                 </div>
             </div>
 
             <div id="results" class="mt-10 hidden">
-                <div id="reportContent">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-stone-800">Verification Report</h2>
-                        <button id="exportCsvBtn" class="mt-4 sm:mt-0 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Export CSV
-                        </button>
-                    </div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-stone-800">Validation Results</h2>
+                    <button id="exportCsvBtn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 shadow-sm flex items-center text-sm">
+                        Export for Excel (CSV)
+                    </button>
+                </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                        <table class="min-w-full divide-y divide-stone-200">
-                            <thead class="bg-stone-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Source Entity</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Type</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Details</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportTableBody" class="divide-y divide-stone-200 bg-white">
-                                </tbody>
-                        </table>
-                    </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                    <table class="min-w-full divide-y divide-stone-200">
+                        <thead class="bg-stone-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Source Entity</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Translation Found</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-stone-500 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="divide-y divide-stone-200"></tbody>
+                    </table>
+                </div>
 
-                    <div id="addedDataSection" class="mt-8 hidden">
-                        <h3 class="text-lg font-bold mb-3 text-red-800 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
-                            Data detected only in Target (Possible incorrect insertion)
-                        </h3>
-                        <div class="bg-red-50 p-4 rounded-xl border border-red-100">
-                            <ul id="addedDataList" class="list-disc list-inside text-red-700 text-sm font-medium space-y-1"></ul>
-                        </div>
+                <div id="addedDataSection" class="mt-8 hidden">
+                    <h3 class="text-md font-bold mb-3 text-red-800 flex items-center">⚠️ Target-Only Entities (Potential Additions)</h3>
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                        <ul id="addedDataList" class="list-disc list-inside text-red-700 text-sm font-medium space-y-1"></ul>
                     </div>
+                </div>
+
+                <h3 class="mt-8 mb-3 text-sm font-bold text-stone-500 uppercase">Side-by-Side Reference</h3>
+                <div class="sync-scroll-container">
+                    <div id="sourceScroll" class="sync-scroll-box"></div>
+                    <div id="targetScroll" class="sync-scroll-box"></div>
                 </div>
             </div>
         </main>
@@ -128,10 +124,45 @@
             table: document.getElementById('reportTableBody'),
             addedSection: document.getElementById('addedDataSection'),
             addedList: document.getElementById('addedDataList'),
-            export: document.getElementById('exportCsvBtn')
+            export: document.getElementById('exportCsvBtn'),
+            sScroll: document.getElementById('sourceScroll'),
+            tScroll: document.getElementById('targetScroll')
         };
 
-        // File Readers
+        // Month Mapping for Date Equivalence
+        const MONTHS_MAP = {
+            'janeiro': '01', 'fevereiro': '02', 'marco': '03', 'abril': '04', 'maio': '05', 'junho': '06',
+            'julho': '07', 'agosto': '08', 'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12',
+            'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06',
+            'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12',
+            'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05', 'jun': '06', 'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+        };
+
+        // Enhanced Regex Rules
+        const RULES = [
+            { type: 'Currency', regex: /(?:USD|EUR|BRL|GBP|\$|£|€|R\$|US\$)\s?[\d.,]+/gi },
+            { type: 'Date', regex: /\b(?:\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2},?\s\d{4}|\d{1,2}\sde\s[a-z]+\sde\s\d{4})\b/gi },
+            { type: 'ID/Code', regex: /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b[A-Z0-9]{3,}\s?[-/]\s?[A-Z0-9]{2,}\b/gi },
+            { type: 'Organization', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltd\.|LLC|S\.A\.|LTDA|S\/A)/g }
+        ];
+
+        // Intelligent Normalizer
+        const normalize = (t, type) => {
+            let text = t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            // Currency Equivalence (R$ = BRL, etc)
+            const currencyAliases = { 'r$': 'brl', '€': 'eur', '$': 'usd', '£': 'gbp' };
+            Object.keys(currencyAliases).forEach(alias => text = text.replace(alias, currencyAliases[alias]));
+
+            if (type === 'Date') {
+                Object.keys(MONTHS_MAP).forEach(m => text = text.replace(m, MONTHS_MAP[m]));
+            }
+
+            // Remove non-alphanumeric to handle spaces and hyphens in codes (1234-5 vs 1234 5)
+            return text.replace(/[^a-z0-9]/gi, '');
+        };
+
+        // File Reading (PDF/DOCX)
         async function readDocx(buffer) { return (await mammoth.extractRawText({ arrayBuffer: buffer })).value; }
         async function readPdf(buffer) {
             const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -139,6 +170,7 @@
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const content = await page.getTextContent();
+                if (content.items.length === 0) return "[ERROR: PDF appears to be a flat image. OCR required.]";
                 text += content.items.map(s => s.str).join(' ') + "\n";
             }
             return text;
@@ -147,107 +179,87 @@
         const handleFile = async (e, area) => {
             const file = e.target.files[0];
             if (!file) return;
-            area.value = "Reading file locally...";
+            area.value = "Reading file...";
             const buffer = await file.arrayBuffer();
             try {
                 area.value = file.name.endsWith('.pdf') ? await readPdf(buffer) : await readDocx(buffer);
-            } catch (err) {
-                area.value = ""; alert("Error reading file. Check if it is protected.");
-            }
+            } catch (err) { alert("File error: " + err.message); }
         };
 
         els.sFile.addEventListener('change', (e) => handleFile(e, els.source));
         els.tFile.addEventListener('change', (e) => handleFile(e, els.target));
 
-        // Mock Data Atualizado para a Demonstração
-        els.mock.addEventListener('click', () => {
-            els.source.value = "On March 15, 2026, the company TechCorp Ltd., registered under CNPJ 12.345.678/0001-90, agreed to transfer the total amount of USD 1,500,000.50 to the supplier. The transaction must be completed by April 10, 2026. Invoice #98765-A was issued accordingly.";
-            els.target.value = "Em 15 de maio de 2026, a empresa TechCorp Ltd., registrada sob o CNPJ 12.345.687/0001-90, concordou em transferir o valor total de USD 1.500.000,05 para o fornecedor. A transação deve ser concluída até 10 de abril de 2026. A fatura nº 98756-A foi emitida de acordo.";
-        });
+        // Sync Scroll Logic
+        els.sScroll.addEventListener('scroll', () => els.tScroll.scrollTop = els.sScroll.scrollTop);
+        els.tScroll.addEventListener('scroll', () => els.sScroll.scrollTop = els.tScroll.scrollTop);
 
-        // Regras de Extração (Regex) Melhoradas
-        const RULES = [
-            // 1. Moedas: Agora lida com USD, EUR, BRL e casas decimais/milhares complexas
-            { type: 'Currency', regex: /(?:USD|EUR|BRL|GBP|\$|£|€|R\$|US\$)\s?[\d.,]+/gi },
-            
-            // 2. Datas: Pega datas por extenso em inglês e português, além de formato numérico
-            { type: 'Date', regex: /\b(?:\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2},\s\d{4}|\d{1,2}\sde\s[a-z]+\sde\s\d{4})\b/gi },
-            
-            // 3. Documentos: Padrões exatos de CNPJ e CPF (com ou sem pontuação)
-            { type: 'ID/Document', regex: /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g },
-            
-            // 4. Códigos/Faturas: Pega letras, números e traços (ex: #98765-A)
-            { type: 'Code/Invoice', regex: /#?[A-Z0-9]+-[A-Z0-9]+/gi },
-            
-            // 5. Organizações: Adicionado LTDA e S.A.
-            { type: 'Org', regex: /[A-Z][A-Za-z0-9\s]+(?:Inc\.|Corp\.|Ltd\.|LLC|S\.A\.|LTDA|S\/A)/g }
-        ];
-
-        // Melhoria no Normalize: Remove espaços e pontuações para comparar apenas as letras/números crus,
-        // garantindo que "1,500.00" e "1.500,00" sejam comparados de forma justa, alertando a diferença real.
-        const normalize = (t) => t.toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-            .replace(/[^a-z0-9]/gi, '');
-
+        // Analysis Logic
         els.analyze.addEventListener('click', () => {
-            if (!els.source.value || !els.target.value) return alert("Please fill both fields.");
+            if (!els.source.value || !els.target.value) return alert("Empty fields.");
             
             els.results.classList.remove('hidden');
             els.table.innerHTML = "";
             els.addedList.innerHTML = "";
             els.addedSection.classList.add('hidden');
+            els.sScroll.innerText = els.source.value;
+            els.tScroll.innerText = els.target.value;
 
             const getEntities = (txt) => {
                 let res = [];
                 RULES.forEach(r => {
                     const matches = txt.match(r.regex);
-                    if (matches) matches.forEach(m => res.push({ val: m, type: r.type, norm: normalize(m) }));
+                    if (matches) matches.forEach(m => res.push({ val: m, type: r.type, norm: normalize(m, r.type) }));
                 });
                 return res;
             };
 
-            const sEnt = getEntities(els.source.value);
-            const tEnt = getEntities(els.target.value);
-            const tNorms = tEnt.map(e => e.norm);
+            const sEntities = getEntities(els.source.value);
+            const tEntities = getEntities(els.target.value);
 
-            sEnt.forEach(e => {
-                const found = tNorms.includes(e.norm);
-                const status = found ? 'MATCH' : 'MISMATCH';
-                const sClass = found ? 'status-ok' : 'status-fail';
-                els.table.innerHTML += `<tr>
-                    <td class="px-6 py-4 text-sm font-medium">${e.val}</td>
-                    <td class="px-6 py-4 text-sm text-stone-500">${e.type}</td>
-                    <td class="px-6 py-4 text-sm ${sClass}">${status}</td>
-                    <td class="px-6 py-4 text-sm text-stone-400">${found ? 'Consistent' : 'Missing or altered'}</td>
+            sEntities.forEach(sEnt => {
+                const match = tEntities.find(tEnt => tEnt.norm === sEnt.norm && tEnt.type === sEnt.type);
+                const status = match ? 'MATCH' : 'MISMATCH';
+                const rowClass = match ? 'status-ok' : 'status-fail';
+                
+                els.table.innerHTML += `<tr class="${rowClass}">
+                    <td class="px-6 py-4 text-sm font-medium">${sEnt.val}</td>
+                    <td class="px-6 py-4 text-sm font-medium">${match ? match.val : '---'}</td>
+                    <td class="px-6 py-4 text-xs font-bold text-stone-500">${sEnt.type}</td>
+                    <td class="px-6 py-4 text-xs">${status}</td>
                 </tr>`;
             });
 
-            tEnt.forEach(e => {
-                if (!sEnt.map(se => se.norm).includes(e.norm)) {
+            tEntities.forEach(tEnt => {
+                if (!sEntities.some(s => s.norm === tEnt.norm)) {
                     els.addedSection.classList.remove('hidden');
                     const li = document.createElement('li');
-                    li.textContent = `${e.val} (${e.type})`;
+                    li.textContent = `${tEnt.val} (${tEnt.type})`;
                     els.addedList.appendChild(li);
                 }
             });
             els.results.scrollIntoView({ behavior: 'smooth' });
         });
 
-        // CSV EXPORT (Excel Friendly)
+        // Mock Scenario (Date/Currency equivalence test)
+        els.mock.addEventListener('click', () => {
+            els.source.value = "Date: 16 de fevereiro de 2026. Value: R$ 1.500,00. ID: 12345-67.";
+            els.target.value = "Date: February 16, 2026. Value: BRL 1500.00. ID: 12345 - 67.";
+        });
+
+        // Excel-Friendly Export (Semicolon and UTF-8 BOM)
         els.export.addEventListener('click', () => {
-            let csv = "\uFEFF"; // UTF-8 BOM
-            csv += "Source Entity,Type,Status,Details\n";
-            
+            let csv = "\uFEFF"; 
+            csv += "Source;Translation;Type;Status\n";
             document.querySelectorAll('#reportTableBody tr').forEach(tr => {
                 const data = Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.trim()}"`);
-                csv += data.join(",") + "\n";
+                csv += data.join(";") + "\n";
             });
-
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `QA_Verification_Report_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `QA_Report_${new Date().getTime()}.csv`;
+            a.click();
         });
     });
     </script>
